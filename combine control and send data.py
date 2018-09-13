@@ -20,8 +20,24 @@ thing = 'Clothesline'
 # connect to Anto
 anto = antolib.Anto(user, key, thing)
 
+# IFTTT
+key = "dfyCMti4sTr8QYKQRk4ve984CF0_Ug4-s_7nSlqyQj3"
+# send to google drive
+def json_send_drive(value1,value2):
+    data = '''curl -X POST -H "Content-Type: application/json" -d '{"value1":"%s","value2":"%s"}' https://maker.ifttt.com/trigger/hum_read/with/key/dfyCMti4sTr8QYKQRk4ve984CF0_Ug4-s_7nSlqyQj3'''%(value1,value2)
+    print('sent to Google Drive')
+    print data 
+    os.system(data)
+#sent to line notification
+def json_send_line(value1,value2,value3):
+    data = '''curl -X POST -H "Content-Type: application/json" -d '{"value1":"%s","value2":"%s","value3":"%s"}' https://maker.ifttt.com/trigger/Noti_Line/with/key/dfyCMti4sTr8QYKQRk4ve984CF0_Ug4-s_7nSlqyQj3'''%(value1,value2,value3)
+    print('sent to Line Notification')
+    print data 
+    os.system(data)
+
 # Variable
-hum = 50.0
+hum = 90.0
+temp = 30.5
 weather = "2222222222"
 state = "555555555555"
 
@@ -65,6 +81,7 @@ def bysystemOff():
     print('send 0')
     ser.write("0")
 
+    
 # Actually work
 
 def connectedCB():
@@ -82,6 +99,7 @@ def connectedCB():
 def dataCB(channel, msg):
     print('in datacb')
     global hum
+    global temp
     global state
     global weather
 
@@ -100,9 +118,11 @@ def dataCB(channel, msg):
             if(state == 'on'):   
                 clotheslineOn()
                 print('clothesline: ON (Automatically)\n')
+                json_send_line(state,weather,hum)
             else:
                 clotheslineOff()
                 print('clothesline: OFF (Automatically)\n')
+                json_send_line(state,weather,hum)
             print state
 
         # Manual control    
@@ -110,6 +130,9 @@ def dataCB(channel, msg):
             bysystemOff()
             print state
             print('clothesline: OFF (Manual)\n')
+
+        # send data to google drive via IFTTT
+        json_send_drive(hum,temp)
 
     # man control
     if(channel == 'clothesline'):
