@@ -5,6 +5,13 @@ import os
 import sys
 import time
 
+# Variable
+hum = 60.0
+temp = 30.5
+weather = ""
+state = ""
+check = ""
+
 # Prepare to exchange the data with Arduino
 ser = serial.Serial('/dev/ttyACM0',9600)
 
@@ -35,11 +42,7 @@ def json_send_line(value1,value2,value3):
     print data 
     os.system(data)
 
-# Variable
-hum = 90.0
-temp = 30.5
-weather = "2222222222"
-state = "555555555555"
+
 
 # FUNCTION
 
@@ -102,6 +105,7 @@ def dataCB(channel, msg):
     global temp
     global state
     global weather
+    global check
 
     # system control
     if(channel == 'system'):
@@ -117,19 +121,23 @@ def dataCB(channel, msg):
         if(value == 1):
             if(state == 'on'):   
                 clotheslineOn()
+                print('System: ON \n')
                 print('clothesline: ON (Automatically)\n')
                 json_send_line(state,weather,hum)
             else:
                 clotheslineOff()
+                print('System: ON \n')
                 print('clothesline: OFF (Automatically)\n')
                 json_send_line(state,weather,hum)
             print state
+            check = "1"
 
         # Manual control    
         else:
-            bysystemOff()
+            
             print state
-            print('clothesline: OFF (Manual)\n')
+            print('System: OFF \n')
+            check = "0"
 
         # send data to google drive via IFTTT
         json_send_drive(hum,temp)
@@ -137,14 +145,15 @@ def dataCB(channel, msg):
     # man control
     if(channel == 'clothesline'):
         value = int(msg)
-        if(value == 1):
-            bysystemOn()
-            print state
-            print('clothesline: ON (Manual)\n')
-        else:
-            bysystemOff()
-            print state
-            print('clothesline: OFF (Manual)\n')
+        if(check == "0"):
+            if(value == 1):
+                bysystemOn()
+                print state
+                print('clothesline: ON (Manual)\n')
+            else:
+                bysystemOff()
+                print state
+                print('clothesline: OFF (Manual)\n')
 
 def setup():
     anto.mqtt.onConnected(connectedCB)
@@ -153,8 +162,9 @@ def setup():
 
 
 def myLoopFunction():
+    setup() 
     time.sleep(10)
-    
-setup()
+
+       
 anto.loop(myLoopFunction)
 
